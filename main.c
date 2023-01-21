@@ -95,7 +95,7 @@ int	main(int ac, char **av)
 	data.time_to_die = atoi(av[2]);
 	data.time_to_eat = atoi(av[3]);
 	data.time_to_sleep = atoi(av[4]);
-	if(data.time_to_die<0 || data.time_to_eat<0 || data.time_to_sleep<0 || data.nbm_philos<0)
+	if(data.time_to_die<0 || data.time_to_eat<0 || data.time_to_sleep<0 || data.nbm_philos <0)
 			return 0;
 	if (ac == 6)
 	{
