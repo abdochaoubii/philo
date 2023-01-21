@@ -101,7 +101,7 @@ int	main(int ac, char **av)
 	{
 		data.what_enough = atoi(av[5]);
 		if(data.what_enough<0)
-			return 0;
+			return 0; 
 	}
 	data.philos = malloc(sizeof(t_philo) * data.nbm_philos);
 
