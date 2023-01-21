@@ -7,9 +7,10 @@
 typedef struct s_philo
 {
 	int id;
+	long last_meal;
 	void *data;
-	pthread_mutex_t left_fork;
-	pthread_mutex_t right_fork;
+	void* left_fork;
+	void* right_fork;
 }					t_philo;
 
 typedef struct s_data
@@ -47,17 +48,22 @@ void *philo_func(void *arg)
 	// t_philo philo = ((t_philo*)*arg);
    t_philo *philo = (t_philo *)arg;
 	t_data *data = (t_data*)philo->data;
+	if(philo->id%2!=0)
+		usleep(500);
 	while(1)
 	{
-		pthread_mutex_lock(&philo->left_fork);
-		pthread_mutex_lock(&philo->right_fork);
+		pthread_mutex_lock(philo->left_fork);
+		printf("%ld %d has taken a fork\n",gettime()-data->time_start,philo->id);
+		pthread_mutex_lock(philo->right_fork);
+		philo->last_meal=gettime();
+		printf("%ld %d has taken a fork\n",gettime()-data->time_start,philo->id);
 		printf("%ld %d is eating\n",gettime()-data->time_start,philo->id);
 		sleep_well(data->time_to_eat );
-
-		pthread_mutex_unlock(&philo->left_fork);
-		pthread_mutex_unlock(&philo->right_fork);
+		pthread_mutex_unlock(philo->left_fork);
+		pthread_mutex_unlock(philo->right_fork);
 		printf("%ld %d is sleeping\n",gettime()-data->time_start,philo->id);
 		sleep_well(data->time_to_sleep );
+		printf("%ld %d is thinking\n",gettime()-data->time_start,philo->id);
 	}
 
 	// printf("Hello, World!\n");
@@ -89,10 +95,11 @@ int main(int ac,char **av)
 
 	for(int i=0;i<data.nbm_philos;i++)
 	{
-		data.philos[i].id=i;
-		data.philos[i].left_fork=data.forks[i];
-		data.philos[i].right_fork=data.forks[(i+1)%data.nbm_philos];
 		data.philos[i].data=&data;
+		data.philos[i].id=i;
+		data.philos[i].last_meal=gettime();
+		data.philos[i].left_fork=&data.forks[i];
+		data.philos[i].right_fork=&data.forks[(i+1)%data.nbm_philos];
 	} 
 	data.time_to_die=atoi(av[2]);
 	data.time_to_eat=atoi(av[3]);
@@ -101,12 +108,24 @@ int main(int ac,char **av)
 	for(int i=0;i<data.nbm_philos;i++)
 	{
 		pthread_create(&thread,NULL,philo_func,&data.philos[i]);
-	}    
+	}
 	// for(int i=0;i<5;i++)
 	// {
-	//     printf("lol %ld %d\n",gettime(),data.philos[i].id);
+	//     printf("lol  %d\n",data.philos[i].last_meal);
 	//     usleep(5000);
-	// }  
-		// pthread_create(&thread[1],NULL,philo_func,&data.philos[i]);
-	  pthread_join (thread, NULL);
+	// } 
+	while(1)
+	{
+	for(int i=0;i<5;i++)
+	{
+		if(gettime()- data.philos[i].last_meal>data.time_to_die)
+		{
+	    printf("%ld %d died\n",gettime()-data.time_start,i);
+		exit(0);
+		}
+	}  
+	    usleep(5000);
+	} 
+	// pthread_create(&thread[1],NULL,philo_func,&data.philos[i]);
+	pthread_join (thread, NULL);
 }
