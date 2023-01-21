@@ -24,6 +24,7 @@ long gettime(void)
         struct timeval tv;
     gettimeofday(&tv,NULL);
      printf("MILISeconds since 1/1/1970: %lu\n",tv.tv_sec*1000+tv.tv_usec/1000);
+     printf("MILISeconds since 1/1/1970: %lu\n",tv.tv_sec*1000+tv.tv_usec/1000);
 return 0;
 
 }
