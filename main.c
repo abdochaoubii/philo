@@ -53,8 +53,6 @@ void	*philo_func(void *arg)
 	int nbrofmeal;
 
 	nbrofmeal=0;
-
-	// t_philo philo = ((t_philo*)*arg);
 	philo = (t_philo *)arg;
 	data = (t_data *)philo->data;
 	if (philo->id % 2 != 0)
@@ -79,7 +77,6 @@ void	*philo_func(void *arg)
 		sleep_well(data->time_to_sleep);
 		printf("%ld %d is thinking\n", gettime() - data->time_start, philo->id);
 	}
-	// printf("Hello, World!\n");
 	return (0);
 }
 
@@ -100,15 +97,11 @@ int	main(int ac, char **av)
 	if (ac == 6)
 	{
 		data.what_enough = atoi(av[5]);
-		if(data.what_enough<0)
+		if(data.what_enough<=0)
 			return 0; 
 	}
 	data.philos = malloc(sizeof(t_philo) * data.nbm_philos);
-
-	// pthread_mutex_t *fork;
 	data.forks = malloc(sizeof(pthread_mutexattr_t) * data.nbm_philos);
-
-	// pthread_mutexattr_init(&mta[0]);
 	for (int i = 0; i < data.nbm_philos; i++)
 	{
 		pthread_mutex_init(&data.forks[i], NULL);
@@ -128,11 +121,6 @@ int	main(int ac, char **av)
 	{
 		pthread_create(&thread, NULL, philo_func, &data.philos[i]);
 	}
-	// for(int i=0;i<5;i++)
-	// {
-	//     printf("lol  %d\n",data.philos[i].last_meal);
-	//     usleep(5000);
-	// }
 	while (1)
 	{
 		for (int i = 0; i < data.nbm_philos; i++)
@@ -150,6 +138,5 @@ int	main(int ac, char **av)
 		}
 		usleep(500);
 	}
-	// pthread_create(&thread[1],NULL,philo_func,&data.philos[i]);
 	pthread_join(thread, NULL);
 }
