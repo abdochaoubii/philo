@@ -129,13 +129,13 @@ int	main(int ac, char **av)
 			if (gettime() - data.philos[i].last_meal > data.time_to_die)
 			{
 				printf("%ld %d died\n", gettime() - data.time_start, i);
-				exit(0);
+				return (0);
 			}
 			if (data.who_complt == data.nbm_philos)
 			{
 				printf("%ld  Everyone has their meals \n", gettime()
 						- data.time_start);
-				exit(0);
+				return (0);
 			}
 			i++;
 		}

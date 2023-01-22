@@ -46,17 +46,27 @@ void	sleep_well(int time)
 	}
 }
 
+void	*checkdeath(void *arg)
+{
+	return 0;
+}
+
+
+
 void	*philo_func(void *arg)
 {
 	t_philo	*philo;
 	t_data	*data;
 	int		nbrofmeal;
+	pthread_t thread;
+
 
 	nbrofmeal = 0;
 	philo = (t_philo *)arg;
 	data = (t_data *)philo->data;
 	if (philo->id % 2 != 0)
 		usleep(500);
+	pthread_create(&thread, NULL, &checkdeath, &philo);
 	while (1)
 	{
 		pthread_mutex_lock(philo->left_fork);
@@ -71,8 +81,11 @@ void	*philo_func(void *arg)
 		pthread_mutex_unlock(philo->left_fork);
 		pthread_mutex_unlock(philo->right_fork);
 		nbrofmeal++;
-		if (nbrofmeal == data->what_enough)
+		if (nbrofmeal == data->what_enough || nbrofmeal == 6 )
+		{
 			data->who_complt++;
+			exit(0);
+		}
 		printf("%ld %d is sleeping\n", gettime() - data->time_start, philo->id);
 		sleep_well(data->time_to_sleep);
 		printf("%ld %d is thinking\n", gettime() - data->time_start, philo->id);
@@ -102,6 +115,8 @@ int	main(int ac, char **av)
 		if (data.what_enough <= 0)
 			return (0);
 	}
+	    pid_t child_pid;
+
 	data.philos = malloc(sizeof(t_philo) * data.nbm_philos);
 	data.forks = malloc(sizeof(pthread_mutexattr_t) * data.nbm_philos);
 	while (i < data.nbm_philos)
@@ -119,8 +134,27 @@ int	main(int ac, char **av)
 
 	data.time_start = gettime();
 	i = 0;
+	//while (i < data.nbm_philos)
+	//	pthread_create(&thread, NULL, philo_func, &data.philos[i++]);
+
 	while (i < data.nbm_philos)
-		pthread_create(&thread, NULL, philo_func, &data.philos[i++]);
+	{
+        child_pid = fork();
+        if (child_pid == 0) {
+            printf("Child Process %d with PID: %d\n", i+1, getpid());
+			philo_func(&data.philos[i++]);
+            // This is the child process
+            //exit(0);
+        }
+		  else {
+            printf("Child Process %d with PID: %d\n", i+1, child_pid);
+             // This is the parent process
+             // Store the child's PID in an array
+             pid_t child_pids[3];
+             child_pids[i] = child_pid;
+         }
+		i++;
+    }
 	while (1)
 	{
 		i = 0;
