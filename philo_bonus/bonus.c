@@ -1,5 +1,6 @@
 
 #include <pthread.h>
+#include <semaphore.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
@@ -24,6 +25,7 @@ typedef struct s_data
 	int				who_complt;
 	long			time_start;
 	pthread_mutex_t	*forks;
+	sem_t *mutex;
 	t_philo			*philos;
 }					t_data;
 
@@ -48,18 +50,15 @@ void	sleep_well(int time)
 
 void	*checkdeath(void *arg)
 {
-	return 0;
+	return (0);
 }
-
-
 
 void	*philo_func(void *arg)
 {
-	t_philo	*philo;
-	t_data	*data;
-	int		nbrofmeal;
-	pthread_t thread;
-
+	t_philo		*philo;
+	t_data		*data;
+	int			nbrofmeal;
+	pthread_t	thread;
 
 	nbrofmeal = 0;
 	philo = (t_philo *)arg;
@@ -69,19 +68,19 @@ void	*philo_func(void *arg)
 	pthread_create(&thread, NULL, &checkdeath, &philo);
 	while (1)
 	{
-		pthread_mutex_lock(philo->left_fork);
+		sem_wait(philo->left_fork);
 		printf("%ld %d has taken a fork\n", gettime() - data->time_start,
 				philo->id);
-		pthread_mutex_lock(philo->right_fork);
+		sem_wait(philo->right_fork);
 		philo->last_meal = gettime();
 		printf("%ld %d has taken a fork\n", gettime() - data->time_start,
 				philo->id);
 		printf("%ld %d is eating\n", gettime() - data->time_start, philo->id);
 		sleep_well(data->time_to_eat);
-		pthread_mutex_unlock(philo->left_fork);
-		pthread_mutex_unlock(philo->right_fork);
+		sem_wait(philo->left_fork);
+		sem_wait(philo->right_fork);
 		nbrofmeal++;
-		if (nbrofmeal == data->what_enough || nbrofmeal == 6 )
+		if (nbrofmeal == data->what_enough || nbrofmeal == 6)
 		{
 			data->who_complt++;
 			exit(0);
@@ -115,20 +114,22 @@ int	main(int ac, char **av)
 		if (data.what_enough <= 0)
 			return (0);
 	}
-	    pid_t child_pid;
+	pid_t child_pid;
 
 	data.philos = malloc(sizeof(t_philo) * data.nbm_philos);
-	data.forks = malloc(sizeof(pthread_mutexattr_t) * data.nbm_philos);
-	while (i < data.nbm_philos)
-		pthread_mutex_init(&data.forks[i++], NULL);
+	//sem_init(&data.mutex, 0, 10);
+	data.mutex = sem_open("/fork", O_CREAT| O_RDWR,  0644, 1);
+	//data.forks = malloc(sizeof(pthread_mutexattr_t) * data.nbm_philos);
+	//while (i < data.nbm_philos)
+	//	pthread_mutex_init(&data.forks[i++], NULL);
 	i = 0;
 	while (i < data.nbm_philos)
 	{
 		data.philos[i].data = &data;
 		data.philos[i].id = i;
 		data.philos[i].last_meal = gettime();
-		data.philos[i].left_fork = &data.forks[i];
-		data.philos[i].right_fork = &data.forks[(i + 1) % data.nbm_philos];
+		data.philos[i].left_fork = &data.mutex;
+		data.philos[i].right_fork = &data.mutex;
 		i++;
 	}
 
@@ -139,22 +140,20 @@ int	main(int ac, char **av)
 
 	while (i < data.nbm_philos)
 	{
-        child_pid = fork();
-        if (child_pid == 0) {
-            printf("Child Process %d with PID: %d\n", i+1, getpid());
+		child_pid = fork();
+		if (child_pid == 0)
+		{
+			printf("Child Process %d with PID: %d\n", i + 1, getpid());
 			philo_func(&data.philos[i++]);
-            // This is the child process
-            //exit(0);
-        }
-		  else {
-            printf("Child Process %d with PID: %d\n", i+1, child_pid);
-             // This is the parent process
-             // Store the child's PID in an array
-             pid_t child_pids[3];
-             child_pids[i] = child_pid;
-         }
+			// This is the child process
+			exit(0);
+		}
+		else
+		{
+			printf("Child Process %d with PID: %d\n", i + 1, child_pid);
+		}
 		i++;
-    }
+	}
 	while (1)
 	{
 		i = 0;
@@ -175,5 +174,5 @@ int	main(int ac, char **av)
 		}
 		usleep(500);
 	}
-	pthread_join(thread, NULL);
+	//pthread_join(thread, NULL);
 }
