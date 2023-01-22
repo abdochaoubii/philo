@@ -76,7 +76,7 @@ void	*philo_func(void *arg)
 		printf("%ld %d is sleeping\n", gettime() - data->time_start, philo->id);
 		sleep_well(data->time_to_sleep);
 		printf("%ld %d is thinking\n", gettime() - data->time_start, philo->id);
-	}
+	} 
 	return (0);
 }
 
