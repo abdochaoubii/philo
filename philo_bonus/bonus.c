@@ -158,7 +158,7 @@ int	main(int ac, char **av)
 			//exit(0);
 			return 0;
 		}
-		else
+		else 
 		{ 
 			data.philos[i].pid=child_pid;
 			// printf("Child Process %d with PID: %d\n", i + 1, child_pid);
