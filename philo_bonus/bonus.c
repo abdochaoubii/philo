@@ -5,10 +5,13 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <unistd.h>
+ #include <sys/types.h>
+ #include <signal.h>
 
 typedef struct s_philo
 {
 	int				id;
+	int				pid;
 	long			last_meal;
 	void			*data;
 	void *left_fork;
@@ -69,6 +72,7 @@ void	*philo_func(void *arg)
 		usleep(100);
 	pthread_create(&thread, NULL, &checkdeath, &philo);
 	pthread_detach(thread);
+
 	while (1)
 	{
 		sem_wait(data->mutex);
@@ -88,7 +92,7 @@ void	*philo_func(void *arg)
 		{
 			data->who_complt++;
 			sem_post(data->death);
-			exit(0);
+			// exit(0);
 		}
 		printf("%ld %d is sleeping\n", gettime() - data->time_start, philo->id);
 		sleep_well(data->time_to_sleep);
@@ -156,7 +160,8 @@ int	main(int ac, char **av)
 		}
 		else
 		{ 
-			//printf("Child Process %d with PID: %d\n", i + 1, child_pid);
+			data.philos[i].pid=child_pid;
+			// printf("Child Process %d with PID: %d\n", i + 1, child_pid);
 		}
 		i++;
 	}
@@ -165,15 +170,23 @@ int	main(int ac, char **av)
 	while (i < data.nbm_philos)
 	{
 		sem_wait(data.death);
-	printf("loooool\n");
+		// printf("loooool\n");
 		i++;
 	}
 	i = 0;
 	while (i < data.nbm_philos)
 	{
-					wait(NULL);
+		// sem_wait(data.death);
+		// printf("damn\n");
+		kill(data.philos[i].pid,2);
 		i++;
 	}
+	i = 0;
+	// while (i < data.nbm_philos)
+	// {
+	// 	wait(NULL);
+	// 	i++;
+	// }
 	// wait(NULL);
 	//while (1)
 	//{
