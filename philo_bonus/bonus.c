@@ -155,7 +155,7 @@ int	main(int ac, char **av)
 			return 0;
 		}
 		else
-		{
+		{ 
 			//printf("Child Process %d with PID: %d\n", i + 1, child_pid);
 		}
 		i++;
