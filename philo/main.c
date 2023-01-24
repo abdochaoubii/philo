@@ -6,7 +6,7 @@
 /*   By: aechaoub <aechaoub@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/24 17:59:12 by aechaoub          #+#    #+#             */
-/*   Updated: 2023/01/24 18:42:57 by aechaoub         ###   ########.fr       */
+/*   Updated: 2023/01/24 19:51:18 by aechaoub         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,7 +115,8 @@ int	main(int ac, char **av)
 	i = 0;
 	if (!take_args(ac, av, &data))
 		return (0);
-	init_philos(&data);
+	if (!init_philos(&data))
+		return (0);
 	data.time_start = gettime();
 	i = 0;
 	while (i < data.nbm_philos)

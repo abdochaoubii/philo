@@ -1,108 +1,48 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   bonus.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: aechaoub <aechaoub@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/01/24 19:39:36 by aechaoub          #+#    #+#             */
+/*   Updated: 2023/01/24 20:15:32 by aechaoub         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-#include <pthread.h>
-#include <semaphore.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/time.h>
-#include <unistd.h>
- #include <sys/types.h>
- #include <signal.h>
+#include "bn_philo.h"
 
-typedef struct s_philo
-{
-	int				id;
-	int				pid;
-	long			last_meal;
-	void			*data;
-	void *left_fork;
-	void *right_fork;
-}					t_philo;
-
-typedef struct s_data
-{
-	int				nbm_philos;
-	int				time_to_die;
-	int				time_to_eat;
-	int				time_to_sleep;
-	int				what_enough;
-	int				who_complt;
-	long			time_start;
-	pthread_mutex_t	*forks;
-	sem_t *mutex;
-	sem_t *death;
-	sem_t *all_eat;
-	t_philo			*philos;
-}					t_data;
-
-long	gettime(void)
-{
-	struct timeval	tv;
-
-	gettimeofday(&tv, NULL);
-	return (tv.tv_sec * 1000 + tv.tv_usec / 1000);
-}
-
-void	sleep_well(int time)
-{
-	long	old_time;
-
-	old_time = gettime();
-	while (gettime() - old_time < time)
-	{
-		usleep(500);
-	}
-}
 void	*confirm_death(void *arg)
 {
-	// t_philo		*philo;
-	t_data		*data;
-	int i;
-	data = (t_data *)arg;
-	// data = (t_data *)philo->data;
+	t_data	*data;
+	int		i;
 
-	// int i = 0;
+	data = (t_data *)arg;
 	sem_wait(data->death);
 	i = 0;
 	while (i < data->nbm_philos)
 	{
-		// sem_wait(data->death);
-		// printf("damn\n");
 		sem_post(data->all_eat);
-		// kill(data->philos[i].pid,2);
 		i++;
 	}
-	// exit(0);
-	return 0;
+	return (0);
 }
+
 void	*checkdeath(void *arg)
 {
-	t_philo		*philo;
-	t_data		*data;
-	int i;
+	t_philo	*philo;
+	t_data	*data;
+
 	philo = (t_philo *)arg;
 	data = (t_data *)philo->data;
-			// printf("lolol\n");
 	while (1)
 	{
-		// i = 0;
-		// while (i < data->nbm_philos)
-		// {
-				// printf("%d died\n",   philo->id);
-			if (gettime() - philo->last_meal > data->time_to_die)
-			{
-				printf("%ld %d died\n", gettime() - data->time_start, philo->id);
-				sem_post(data->death);
-				break;
-				// exit(0);
-			}
-			// if (data->who_complt == data->nbm_philos)
-			// {
-			// 	printf("%ld  Everyone has their meals \n", gettime()
-			// 			- data->time_start);
-			// 	exit(0);
-			// }
-			// i++;
-		// }
+		if (gettime() - philo->last_meal > data->time_to_die)
+		{
+			printf("%ld %d died\n", gettime() - data->time_start, philo->id);
+			sem_post(data->death);
+			break ;
+		}
 		usleep(500);
 	}
 	return (0);
@@ -120,149 +60,64 @@ void	*philo_func(void *arg)
 	data = (t_data *)philo->data;
 	sem_wait(data->death);
 	sem_wait(data->all_eat);
-	// if (philo->id % 2 != 0)
-	// 	usleep(100);
 	pthread_create(&thread, NULL, checkdeath, arg);
 	pthread_detach(thread);
-
 	while (1)
 	{
-		sem_wait(data->mutex);
-		sem_wait(data->mutex);
-		//sem_wait(data->mutex);
-		printf("%ld %d has taken a fork\n", gettime() - data->time_start,
-				philo->id);
-		philo->last_meal = gettime();
-		printf("%ld %d has taken a fork\n", gettime() - data->time_start,
-				philo->id);
-		printf("%ld %d is eating\n", gettime() - data->time_start, philo->id);
-		sleep_well(data->time_to_eat);
-		sem_post(data->mutex);
-		sem_post(data->mutex);
 		nbrofmeal++;
-		if (nbrofmeal == data->what_enough )
-		{
-			data->who_complt++;
-			sem_post(data->all_eat);
-			// exit(0);
-		}
+		philo_eat(philo, data, nbrofmeal);
 		printf("%ld %d is sleeping\n", gettime() - data->time_start, philo->id);
 		sleep_well(data->time_to_sleep);
 		printf("%ld %d is thinking\n", gettime() - data->time_start, philo->id);
 	}
+	return (0);
+}
 
+int	check_death(t_data *data)
+{
+	pthread_t	thread;
+	int			i;
+
+	pthread_create(&thread, NULL, confirm_death, data);
+	pthread_detach(thread);
+	i = 0;
+	while (i < data->nbm_philos)
+	{
+		sem_wait(data->all_eat);
+		i++;
+	}
+	i = 0;
+	while (i < data->nbm_philos)
+	{
+		kill(data->philos[i].pid, 2);
+		i++;
+	}
 	return (0);
 }
 
 int	main(int ac, char **av)
 {
-	t_data data;
-	pthread_t thread;
-	int i;
+	t_data		data;
+	pid_t		child_pid;
+	int			i;
 
-	if (ac != 6 && ac != 5)
+	if (!take_args(ac, av, &data))
 		return (0);
-	i = 0;
-	data.nbm_philos = atoi(av[1]);
-	data.time_to_die = atoi(av[2]);
-	data.time_to_eat = atoi(av[3]);
-	data.time_to_sleep = atoi(av[4]);
-	if (data.time_to_die < 0 || data.time_to_eat < 0 || data.time_to_sleep < 0
-		|| data.nbm_philos < 0)
+	if (!init_philos(&data))
 		return (0);
-	if (ac == 6)
-	{
-		data.what_enough = atoi(av[5]);
-		if (data.what_enough <= 0)
-			return (0);
-	}
-	pid_t child_pid;
-
-	data.philos = malloc(sizeof(t_philo) * data.nbm_philos);
-	//sem_init(&data.mutex, 0, 10);
-	sem_unlink("/fork");
-	sem_unlink("/death");
-	sem_unlink("/all_eat");
-	data.mutex = sem_open("/fork", O_CREAT| O_RDWR,  0644, data.nbm_philos);
-	data.all_eat = sem_open("/death", O_CREAT| O_RDWR,  0644, data.nbm_philos);
-	data.death = sem_open("/all_eat", O_CREAT| O_RDWR,  0644, data.nbm_philos);
-	//data.forks = malloc(sizeof(pthread_mutexattr_t) * data.nbm_philos);
-	//while (i < data.nbm_philos)
-	//	pthread_mutex_init(&data.forks[i++], NULL);
-	i = 0;
-	while (i < data.nbm_philos)
-	{
-		data.philos[i].data = &data;
-		data.philos[i].id = i;
-		data.philos[i].last_meal = gettime();
-		data.philos[i].left_fork = data.mutex;
-		data.philos[i].right_fork = data.mutex;
-		i++;
-	}
-
-	data.time_start = gettime();
 	i = 0;
 	while (i < data.nbm_philos)
 	{
 		child_pid = fork();
 		if (child_pid == 0)
 		{
-			//printf("Child Process %d with PID: %d\n", i + 1, getpid());
 			philo_func(&data.philos[i++]);
-			// This is the child process
-			//exit(0);
-			return 0;
+			return (0);
 		}
-		else 
-		{ 
-			data.philos[i].pid=child_pid;
-			// printf("Child Process %d with PID: %d\n", i + 1, child_pid);
-		}
+		else
+			data.philos[i].pid = child_pid;
 		i++;
 	}
 	usleep(200);
-	pthread_create(&thread, NULL, confirm_death, &data);
-	pthread_detach(thread);
-	i = 0;
-	while (i < data.nbm_philos)
-	{
-		sem_wait(data.all_eat);
-		i++;
-	}
-	i = 0;
-	while (i < data.nbm_philos)
-	{
-		// sem_wait(data.death);
-		// printf("damn\n");
-		kill(data.philos[i].pid,2);
-		i++;
-	}
-	i = 0;
-	// while (i < data.nbm_philos)
-	// {
-	// 	wait(NULL);
-	// 	i++;
-	// }
-	// wait(NULL);
-	//while (1)
-	//{
-	//	i = 0;
-	//	while (i < data.nbm_philos)
-	//	{
-	//		if (gettime() - data.philos[i].last_meal > data.time_to_die)
-	//		{
-	//			printf("%ld %d died\n", gettime() - data.time_start, i);
-	//			exit(0);
-	//		}
-	//		if (data.who_complt == data.nbm_philos)
-	//		{
-	//			printf("%ld  Everyone has their meals \n", gettime()
-	//					- data.time_start);
-	//			exit(0);
-	//		}
-	//		i++;
-	//	}
-	//	usleep(500);
-	//}
-	//pthread_join(thread, NULL);
+	check_death(&data);
 }

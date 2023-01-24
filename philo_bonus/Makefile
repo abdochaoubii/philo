@@ -3,4 +3,4 @@
 
 
 all:
-	gcc ft_atoi.c bonus.c -o philo_bonus
+	gcc -Wall -Werror -Wextra tools.c tools1.c bonus.c -o philo_bonus
