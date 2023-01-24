@@ -3,4 +3,4 @@
 
 
 all:
-	gcc ft_atoi.c main.c -o philo
+	gcc tools.c main.c -o philo
