@@ -103,7 +103,7 @@ int	main(int ac, char **av)
 			return (0);
 	}
 	data.philos = malloc(sizeof(t_philo) * data.nbm_philos);
-	data.forks = malloc(sizeof(pthread_mutexattr_t) * data.nbm_philos);
+	data.forks = malloc(sizeof(pthread_mutex_t) * data.nbm_philos);
 	while (i < data.nbm_philos)
 		pthread_mutex_init(&data.forks[i++], NULL);
 	i = 0;

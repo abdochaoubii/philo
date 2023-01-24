@@ -30,6 +30,7 @@ typedef struct s_data
 	pthread_mutex_t	*forks;
 	sem_t *mutex;
 	sem_t *death;
+	sem_t *all_eat;
 	t_philo			*philos;
 }					t_data;
 
@@ -51,9 +52,59 @@ void	sleep_well(int time)
 		usleep(500);
 	}
 }
+void	*confirm_death(void *arg)
+{
+	// t_philo		*philo;
+	t_data		*data;
+	int i;
+	data = (t_data *)arg;
+	// data = (t_data *)philo->data;
 
+	// int i = 0;
+	sem_wait(data->death);
+	i = 0;
+	while (i < data->nbm_philos)
+	{
+		// sem_wait(data->death);
+		// printf("damn\n");
+		sem_post(data->all_eat);
+		// kill(data->philos[i].pid,2);
+		i++;
+	}
+	// exit(0);
+	return 0;
+}
 void	*checkdeath(void *arg)
 {
+	t_philo		*philo;
+	t_data		*data;
+	int i;
+	philo = (t_philo *)arg;
+	data = (t_data *)philo->data;
+			// printf("lolol\n");
+	while (1)
+	{
+		// i = 0;
+		// while (i < data->nbm_philos)
+		// {
+				// printf("%d died\n",   philo->id);
+			if (gettime() - philo->last_meal > data->time_to_die)
+			{
+				printf("%ld %d died\n", gettime() - data->time_start, philo->id);
+				sem_post(data->death);
+				break;
+				// exit(0);
+			}
+			// if (data->who_complt == data->nbm_philos)
+			// {
+			// 	printf("%ld  Everyone has their meals \n", gettime()
+			// 			- data->time_start);
+			// 	exit(0);
+			// }
+			// i++;
+		// }
+		usleep(500);
+	}
 	return (0);
 }
 
@@ -68,9 +119,10 @@ void	*philo_func(void *arg)
 	philo = (t_philo *)arg;
 	data = (t_data *)philo->data;
 	sem_wait(data->death);
-	if (philo->id % 2 != 0)
-		usleep(100);
-	pthread_create(&thread, NULL, &checkdeath, &philo);
+	sem_wait(data->all_eat);
+	// if (philo->id % 2 != 0)
+	// 	usleep(100);
+	pthread_create(&thread, NULL, checkdeath, arg);
 	pthread_detach(thread);
 
 	while (1)
@@ -88,16 +140,17 @@ void	*philo_func(void *arg)
 		sem_post(data->mutex);
 		sem_post(data->mutex);
 		nbrofmeal++;
-		if (nbrofmeal == data->what_enough || nbrofmeal == 5)
+		if (nbrofmeal == data->what_enough )
 		{
 			data->who_complt++;
-			sem_post(data->death);
+			sem_post(data->all_eat);
 			// exit(0);
 		}
 		printf("%ld %d is sleeping\n", gettime() - data->time_start, philo->id);
 		sleep_well(data->time_to_sleep);
 		printf("%ld %d is thinking\n", gettime() - data->time_start, philo->id);
 	}
+
 	return (0);
 }
 
@@ -129,8 +182,10 @@ int	main(int ac, char **av)
 	//sem_init(&data.mutex, 0, 10);
 	sem_unlink("/fork");
 	sem_unlink("/death");
+	sem_unlink("/all_eat");
 	data.mutex = sem_open("/fork", O_CREAT| O_RDWR,  0644, data.nbm_philos);
-	data.death = sem_open("/death", O_CREAT| O_RDWR,  0644, data.nbm_philos);
+	data.all_eat = sem_open("/death", O_CREAT| O_RDWR,  0644, data.nbm_philos);
+	data.death = sem_open("/all_eat", O_CREAT| O_RDWR,  0644, data.nbm_philos);
 	//data.forks = malloc(sizeof(pthread_mutexattr_t) * data.nbm_philos);
 	//while (i < data.nbm_philos)
 	//	pthread_mutex_init(&data.forks[i++], NULL);
@@ -165,12 +220,13 @@ int	main(int ac, char **av)
 		}
 		i++;
 	}
+	usleep(200);
+	pthread_create(&thread, NULL, confirm_death, &data);
+	pthread_detach(thread);
 	i = 0;
-	usleep(500);
 	while (i < data.nbm_philos)
 	{
-		sem_wait(data.death);
-		// printf("loooool\n");
+		sem_wait(data.all_eat);
 		i++;
 	}
 	i = 0;
