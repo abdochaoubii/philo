@@ -6,7 +6,7 @@
 /*   By: aechaoub <aechaoub@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/24 17:59:12 by aechaoub          #+#    #+#             */
-/*   Updated: 2023/01/24 19:51:18 by aechaoub         ###   ########.fr       */
+/*   Updated: 2023/01/25 15:31:12 by aechaoub         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 void	philo_eat(t_philo *philo, t_data *data)
 {
 	pthread_mutex_lock(philo->left_fork);
+	pthread_mutex_lock(philo->eating);
 	printf("%ld %d has taken a fork\n", gettime() - data->time_start,
 		philo->id);
 	pthread_mutex_lock(philo->right_fork);
@@ -22,6 +23,7 @@ void	philo_eat(t_philo *philo, t_data *data)
 	printf("%ld %d has taken a fork\n", gettime() - data->time_start,
 		philo->id);
 	printf("%ld %d is eating\n", gettime() - data->time_start, philo->id);
+	pthread_mutex_unlock(philo->eating);
 	sleep_well(data->time_to_eat);
 	pthread_mutex_unlock(philo->left_fork);
 	pthread_mutex_unlock(philo->right_fork);
@@ -44,7 +46,9 @@ void	*philo_func(void *arg)
 		nbrofmeal++;
 		if (nbrofmeal == data->what_enough)
 			data->who_complt++;
+		pthread_mutex_lock(philo->eating);
 		printf("%ld %d is sleeping\n", gettime() - data->time_start, philo->id);
+		pthread_mutex_unlock(philo->eating);
 		sleep_well(data->time_to_sleep);
 		printf("%ld %d is thinking\n", gettime() - data->time_start, philo->id);
 	}
@@ -61,11 +65,13 @@ int	check_death(t_data *data)
 		i = 0;
 		while (i < data->nbm_philos)
 		{
+			pthread_mutex_lock(data->philos[i].eating);
 			if (gettime() - data->philos[i].last_meal > data->time_to_die)
 			{
 				printf("%ld %d died\n", gettime() - data->time_start, i);
 				return (1);
 			}
+			pthread_mutex_unlock(data->philos[i].eating);
 			if (data->who_complt == data->nbm_philos)
 			{
 				printf("%ld  Everyone has their meals \n", gettime()
@@ -74,7 +80,7 @@ int	check_death(t_data *data)
 			}
 			i++;
 		}
-		usleep(500);
+		usleep(50);
 	}
 }
 
@@ -88,14 +94,22 @@ int	init_philos(t_data *data)
 	data->forks = malloc(sizeof(pthread_mutex_t) * data->nbm_philos);
 	if (!data->forks)
 		return (0);
+	data->eat = malloc(sizeof(pthread_mutex_t) * data->nbm_philos);
+	if (!data->eat)
+		return (0);
 	i = 0;
 	while (i < data->nbm_philos)
-		pthread_mutex_init(&data->forks[i++], NULL);
+	{
+		pthread_mutex_init(&data->forks[i], NULL);
+		pthread_mutex_init(&data->eat[i], NULL);
+		i++;
+	}
 	i = 0;
 	while (i < data->nbm_philos)
 	{
 		data->philos[i].data = data;
 		data->philos[i].id = i;
+		data->philos[i].eating = &data->eat[i];
 		data->philos[i].last_meal = gettime();
 		data->philos[i].left_fork = &data->forks[i];
 		data->philos[i].right_fork = &data->forks[(i + 1) % data->nbm_philos];

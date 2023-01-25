@@ -6,7 +6,7 @@
 /*   By: aechaoub <aechaoub@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/24 18:38:16 by aechaoub          #+#    #+#             */
-/*   Updated: 2023/01/24 20:09:34 by aechaoub         ###   ########.fr       */
+/*   Updated: 2023/01/25 15:17:39 by aechaoub         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@ typedef struct s_philo
 	void			*data;
 	void			*left_fork;
 	void			*right_fork;
+	void			*eating;
 }					t_philo;
 
 typedef struct s_data
@@ -38,6 +39,7 @@ typedef struct s_data
 	int				who_complt;
 	long			time_start;
 	pthread_mutex_t	*forks;
+	pthread_mutex_t	*eat;
 	t_philo			*philos;
 }					t_data;
 
