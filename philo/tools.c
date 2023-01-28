@@ -6,7 +6,7 @@
 /*   By: aechaoub <aechaoub@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/24 18:33:48 by aechaoub          #+#    #+#             */
-/*   Updated: 2023/01/24 18:43:00 by aechaoub         ###   ########.fr       */
+/*   Updated: 2023/01/27 13:13:00 by aechaoub         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,7 +72,7 @@ long	gettime(void)
 	return (tv.tv_sec * 1000 + tv.tv_usec / 1000);
 }
 
-void	sleep_well(int time)
+void	sleep_well(long time)
 {
 	long	old_time;
 

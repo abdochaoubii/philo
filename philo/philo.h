@@ -6,7 +6,7 @@
 /*   By: aechaoub <aechaoub@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/24 18:38:16 by aechaoub          #+#    #+#             */
-/*   Updated: 2023/01/25 15:17:39 by aechaoub         ###   ########.fr       */
+/*   Updated: 2023/01/27 17:30:31 by aechaoub         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@
 typedef struct s_philo
 {
 	int				id;
+	long				start;
 	long			last_meal;
 	void			*data;
 	void			*left_fork;
@@ -37,14 +38,16 @@ typedef struct s_data
 	int				time_to_sleep;
 	int				what_enough;
 	int				who_complt;
+	int				stop;
 	long			time_start;
 	pthread_mutex_t	*forks;
 	pthread_mutex_t	*eat;
+	pthread_mutex_t	print;
 	t_philo			*philos;
 }					t_data;
 
 int					take_args(int ac, char **av, t_data *data);
 long				gettime(void);
-void				sleep_well(int time);
+void				sleep_well(long time);
 
 #endif
