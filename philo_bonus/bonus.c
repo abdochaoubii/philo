@@ -6,7 +6,7 @@
 /*   By: aechaoub <aechaoub@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/24 19:39:36 by aechaoub          #+#    #+#             */
-/*   Updated: 2023/01/24 20:15:32 by aechaoub         ###   ########.fr       */
+/*   Updated: 2023/02/03 18:54:00 by aechaoub         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,16 +33,19 @@ void	*checkdeath(void *arg)
 	t_philo	*philo;
 	t_data	*data;
 
+
 	philo = (t_philo *)arg;
 	data = (t_data *)philo->data;
 	while (1)
 	{
+		sem_wait(philo->print);
 		if (gettime() - philo->last_meal > data->time_to_die)
 		{
 			printf("%ld %d died\n", gettime() - data->time_start, philo->id);
 			sem_post(data->death);
 			break ;
 		}
+		sem_post(philo->print);
 		usleep(500);
 	}
 	return (0);
@@ -58,6 +61,7 @@ void	*philo_func(void *arg)
 	nbrofmeal = 0;
 	philo = (t_philo *)arg;
 	data = (t_data *)philo->data;
+	philo->print = sem_open("/print", O_CREAT | O_RDWR, 0644, 1);
 	sem_wait(data->death);
 	sem_wait(data->all_eat);
 	pthread_create(&thread, NULL, checkdeath, arg);
@@ -66,9 +70,13 @@ void	*philo_func(void *arg)
 	{
 		nbrofmeal++;
 		philo_eat(philo, data, nbrofmeal);
+		sem_wait(philo->print);
 		printf("%ld %d is sleeping\n", gettime() - data->time_start, philo->id);
+		sem_post(philo->print);
 		sleep_well(data->time_to_sleep);
+		sem_wait(philo->print);
 		printf("%ld %d is thinking\n", gettime() - data->time_start, philo->id);
+		sem_post(philo->print);
 	}
 	return (0);
 }
@@ -103,6 +111,10 @@ int	main(int ac, char **av)
 
 	if (!take_args(ac, av, &data))
 		return (0);
+	sem_unlink("/fork");
+	sem_unlink("/death");
+	sem_unlink("/all_eat");
+	sem_unlink("/print");
 	if (!init_philos(&data))
 		return (0);
 	i = 0;

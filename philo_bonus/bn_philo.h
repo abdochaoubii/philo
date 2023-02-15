@@ -6,7 +6,7 @@
 /*   By: aechaoub <aechaoub@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/24 20:07:58 by aechaoub          #+#    #+#             */
-/*   Updated: 2023/01/24 20:14:20 by aechaoub         ###   ########.fr       */
+/*   Updated: 2023/01/29 17:32:04 by aechaoub         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ typedef struct s_philo
 	void			*data;
 	void			*left_fork;
 	void			*right_fork;
+	sem_t			*print;
 }					t_philo;
 
 typedef struct s_data

@@ -6,7 +6,7 @@
 /*   By: aechaoub <aechaoub@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/24 20:12:25 by aechaoub          #+#    #+#             */
-/*   Updated: 2023/01/24 20:14:29 by aechaoub         ###   ########.fr       */
+/*   Updated: 2023/01/29 17:33:15 by aechaoub         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,12 +16,14 @@ void	philo_eat(t_philo *philo, t_data *data, int nbrofmeal)
 {
 	sem_wait(data->mutex);
 	sem_wait(data->mutex);
+	sem_wait(philo->print);
 	printf("%ld %d has taken a fork\n", gettime() - data->time_start,
 		philo->id);
 	philo->last_meal = gettime();
 	printf("%ld %d has taken a fork\n", gettime() - data->time_start,
 		philo->id);
 	printf("%ld %d is eating\n", gettime() - data->time_start, philo->id);
+	sem_post(philo->print);
 	sleep_well(data->time_to_eat);
 	sem_post(data->mutex);
 	sem_post(data->mutex);
